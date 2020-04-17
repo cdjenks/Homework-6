@@ -2,20 +2,67 @@
 $("#search-button").on("click", function(event){
     event.preventDefault();
     var inputCity = $("#city-input").val().trim();
-    var newCity = $("<button>").text(inputCity).addClass("list-group-item").attr("style", "text-align: left; font-size: 20px;");
-    $("#searched-cities").removeClass("hide").prepend(newCity);
-    displayWeatherToday(inputCity);
-    forecastWeather(inputCity)
-
-});
-
-// For reloading weather data for a city from list of searched cities
-$("#searched-cities").on("click", function(event){
-    event.preventDefault();
-    inputCity = $(event.target).val().trim();
+     // Adding city to list of searched cities
+     var newCity = $("<button>").text(inputCity).addClass("list-group-item").attr("style", "text-align: left; font-size: 20px;");
+     $("#searched-cities").prepend(newCity);
+     $("#clear-button").removeClass("hide");
+     // Adding city to local storage 
+     saveCity(inputCity);
+     localStorage.setItem("recent-city", inputCity);
+    // Calling primary functions
     displayWeatherToday(inputCity);
     forecastWeather(inputCity);
+    $("#city-input").val("");
 });
+
+//Event handler for the clear button
+$("#clear-button").on("click", function(event){
+    event.preventDefault();
+    localStorage.setItem("recent-city", "");
+    localStorage.setItem("Cities", []);
+    location.reload();
+});
+
+// For reloading weather data for a city from the list of searched cities
+$("#searched-cities").on("click", function(event){
+    event.preventDefault();
+    inputCity = $(event.target).text().trim();
+    displayWeatherToday(inputCity);
+    forecastWeather(inputCity);
+    localStorage.setItem('recent-city', inputCity)
+});
+
+// Saving searched cities to local storage
+function saveCity(inputCity){
+    savedCities = localStorage.getItem("Cities")
+    if (savedCities) {
+        savedCities = savedCities.split(",");
+        savedCities.push(inputCity);
+    } 
+    else {
+        savedCities = [inputCity];
+    }
+
+    localStorage.setItem("Cities", savedCities)
+}
+
+// Function for re-displaying saved cities on page refresh
+function loadCities(){
+    savedCities = localStorage.getItem("Cities")
+    mostRecentCity = localStorage.getItem("recent-city")
+    if (savedCities) {
+        savedCities = savedCities.split(",");
+        savedCities.forEach(city => {
+        var newCity = $("<button>").text(city).addClass("list-group-item").attr("style", "text-align: left; font-size: 20px;");
+        $("#searched-cities").prepend(newCity);
+        $("#clear-button").removeClass("hide");
+        })
+    }
+    if (mostRecentCity) {
+        displayWeatherToday(mostRecentCity)
+        forecastWeather(mostRecentCity)
+    }
+}
 
 // Function for gathering and displaying today's weather for the selected city
 function displayWeatherToday(inputCity){
@@ -49,8 +96,9 @@ function displayWeatherToday(inputCity){
             method: "GET"
         }).then(function(uvResponse){
             uvIndex = uvResponse.value;
-            console.log(uvIndex);
-
+            $("#uvindex-value").text(uvIndex);
+            $("#uvindex-value").attr("class", "");
+           
             //Setting uv index severity color
             if (uvIndex < 3) {
                 $("#uvindex-value").addClass("uv-low")
@@ -67,9 +115,11 @@ function displayWeatherToday(inputCity){
             else {
                 $("#uvindex-value").addClass("uv-extreme")
             }
-            // Setting the uv index text/value
-            $("#uvindex-value").text(uvIndex);
+            
         }) 
+    }).fail(e => {
+        alert("Please try another city");
+        $("#city-input").val("");
     })
 }
 
@@ -112,3 +162,4 @@ function forecastWeather(inputCity) {
     })
 }
 
+loadCities()   
