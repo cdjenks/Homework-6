@@ -86,9 +86,21 @@ function displayWeatherToday(inputCity){
         uvURL = "http://api.openweathermap.org/data/2.5/uvi?appid=e049298ddd73342a74fe9ed55436d61b&lat=" + lat + "&lon=" + lon;
         
         
+         // If/else statements to account for all possible states of local storage
         savedCities = localStorage.getItem("Cities")
-        savedCities = savedCities.split(",");
+        if (savedCities) {
+            savedCities = savedCities.split(",");  
+        } 
+        else {
+            savedCities = [inputCity];
+            localStorage.setItem("Cities", savedCities)
+            var newCity = $("<button>").text(inputCity).addClass("list-group-item").attr("style", "text-align: left; font-size: 20px;");
+            $("#searched-cities").removeClass("hide").prepend(newCity);
+            $("#clear-button").removeClass("hide");
+            localStorage.setItem('recent-city', inputCity);
+        }
         
+        // Code to be run only if it is a new city that was searched for
         if (!savedCities.includes(inputCity)){
             // Adding city to list of searched cities
             var newCity = $("<button>").text(inputCity).addClass("list-group-item").attr("style", "text-align: left; font-size: 20px;");
