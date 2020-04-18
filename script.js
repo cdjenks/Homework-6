@@ -2,16 +2,10 @@
 $("#search-button").on("click", function(event){
     event.preventDefault();
     var inputCity = $("#city-input").val().trim();
-     // Adding city to list of searched cities
-     var newCity = $("<button>").text(inputCity).addClass("list-group-item").attr("style", "text-align: left; font-size: 20px;");
-     $("#searched-cities").prepend(newCity);
-     $("#clear-button").removeClass("hide");
-     // Adding city to local storage 
-     saveCity(inputCity);
-     localStorage.setItem("recent-city", inputCity);
-    // Calling primary functions
+    //Calling primary functions
     displayWeatherToday(inputCity);
     forecastWeather(inputCity);
+    //Clearing input field
     $("#city-input").val("");
 });
 
@@ -73,11 +67,11 @@ function displayWeatherToday(inputCity){
         url: queryURL,
         method: "GET"
     }).then(function(response){
-        
+       
         $("#city-name").text(inputCity + " " + "(" + (m.format("L")) + ")");
-        var todayIconId = response.weather[0].icon;
-        var todayIconURL = "http://openweathermap.org/img/wn/" + todayIconId + "@2x.png";
-        $("#same-day-icon").attr("src", todayIconURL).attr("style", "max-height: 60px; max-width: 60px;");
+        var iconId = response.weather[0].icon;
+        var iconURL = "http://openweathermap.org/img/wn/" + iconId + "@2x.png";
+        $("#same-day-icon").attr("src", iconURL).attr("style", "max-height: 60px; max-width: 60px;");
         
         kelvinTemp = response.main.temp;
         kelvinTemp = parseFloat(kelvinTemp);
@@ -87,10 +81,27 @@ function displayWeatherToday(inputCity){
         $("#city-humidity").text("Humidity: " + response.main.humidity + "%");
         $("#city-wind-speed").text("Wind Speed: " + response.wind.speed + " MPH");
         $("#city-UV-index").text("UV Index:");
-        var lon = response.coord.lon
-        var lat = response.coord.lat
+        var lon = response.coord.lon;
+        var lat = response.coord.lat;
         uvURL = "http://api.openweathermap.org/data/2.5/uvi?appid=e049298ddd73342a74fe9ed55436d61b&lat=" + lat + "&lon=" + lon;
         
+        
+        savedCities = localStorage.getItem("Cities")
+        savedCities = savedCities.split(",");
+        
+        if (!savedCities.includes(inputCity)){
+            // Adding city to list of searched cities
+            var newCity = $("<button>").text(inputCity).addClass("list-group-item").attr("style", "text-align: left; font-size: 20px;");
+            $("#searched-cities").removeClass("hide").prepend(newCity);
+            $("#clear-button").removeClass("hide");
+            
+            // Adding city to local storage 
+            saveCity(inputCity);
+            localStorage.setItem('recent-city', inputCity)
+        }
+        
+       
+
         $.ajax({
             url: uvURL,
             method: "GET"
@@ -131,10 +142,10 @@ function forecastWeather(inputCity) {
         url: forecastURL,
         method: "GET"
     }).then(function(response){
-        var x = 0
+        var x = 7
         for (var i = 1; i < 6; i++){
             var m = moment();
-
+            
             $("#forecast-boxes").removeClass("hide");
             var forecastDate = $("<h4>").text(m.add(i,"d").format("L")).attr("style", "color: white;");
 
